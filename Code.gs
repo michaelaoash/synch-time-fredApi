@@ -66,7 +66,7 @@ function myFunction() {
 
   // Cycle through the series (one per row) to retrieve 
   for (var i = 1; i < values.length; i++) {
-    var seriesname = values[i][0] ;
+    var FREDcode = values[i][0] ;
     if (values[i][4] == '') 
       var observation_start = ''
     else 
@@ -80,15 +80,15 @@ function myFunction() {
     var frequency_text = values[i][8] ;
     var aggregation_method_text = values[i][9];
      
-    var data = getnwrite(seriesname, observation_start, observation_end, sort_order_text, units_text, frequency_text, aggregation_method_text) ;
-    var meta = fredQueryMeta(seriesname) ;
+    var data = getnwrite(FREDcode, observation_start, observation_end, sort_order_text, units_text, frequency_text, aggregation_method_text) ;
+    var meta = fredQueryMeta(FREDcode) ;
     
-    title[seriesname] = meta.seriess[0]["title"] ;
-    etc[seriesname] = units_text + ' ' + meta.seriess[0]["units"]  + ' ' + meta.seriess[0]["seasonal_adjustment_short"] ;
-    series[seriesname] = seriesname ;
-    mymap[seriesname] = arrayToMap(data) ;
+    title[FREDcode] = meta.seriess[0]["title"] ;
+    etc[FREDcode] = units_text + ' ' + meta.seriess[0]["units"]  + ' ' + meta.seriess[0]["seasonal_adjustment_short"] ;
+    series[FREDcode] = FREDcode ;
+    mymap[FREDcode] = arrayToMap(data) ;
     var dates = [] ;
-    for (var d in mymap[seriesname]) {
+    for (var d in mymap[FREDcode]) {
       dates.push(d)
     }
     theDates = theDates.concat(dates);
@@ -141,7 +141,7 @@ function onlyUnique(value, index, self) {
 }
 
 // getnrwrite() calls the FRED query functions and returns the data
-function getnwrite(seriesname, observation_start, observation_end, sort_order_text, units_text, frequency_text, aggregation_method_text) { 
+function getnwrite(FREDcode, observation_start, observation_end, sort_order_text, units_text, frequency_text, aggregation_method_text) { 
     switch(sort_order_text) {
       case 'Descending':
         var sort_order = 'desc' ;
@@ -222,7 +222,7 @@ function getnwrite(seriesname, observation_start, observation_end, sort_order_te
         var aggregation_method = '';
     }
   
-  var data = fredQueryData(seriesname, observation_start, observation_end, sort_order, units, frequency, aggregation_method) ;
+  var data = fredQueryData(FREDcode, observation_start, observation_end, sort_order, units, frequency, aggregation_method) ;
   return data ;
 }
 
@@ -242,25 +242,25 @@ function arrayToMap(data) {
 
 
 // Construct, send query to FRED API for metadata on series
-function fredQueryMeta(seriesname)  {
+function fredQueryMeta(FREDcode)  {
  var url =  'https://api.stlouisfed.org/fred/series?'
- + 'series_id=' + seriesname
+ + 'series_id=' + FREDcode
  + '&api_key=' + PropertiesService.getScriptProperties().getProperty('mykey')
  + '&file_type=json'
   ;
   var response = UrlFetchApp.fetch(url, {'muteHttpExceptions': true});
   var json = response.getContentText();
   var meta = JSON.parse(json);
-  Logger.log(seriesname + ' ' + url + " metadata fetched");  
+  Logger.log(FREDcode + ' ' + url + " metadata fetched");  
   return meta ;  
 }
 
 
 // Construct, send query to FRED API for a data series
-function fredQueryData(seriesname, observation_start, observation_end, sort_order, units, frequency, aggregation_method) {
+function fredQueryData(FREDcode, observation_start, observation_end, sort_order, units, frequency, aggregation_method) {
   
   var url = 'https://api.stlouisfed.org/fred/series/observations?'
-  + 'series_id=' + seriesname
+  + 'series_id=' + FREDcode
   + '&observation_start=' + observation_start 
   + '&observation_end=' + observation_end 
   + '&sort_order=' + sort_order 
@@ -274,6 +274,6 @@ function fredQueryData(seriesname, observation_start, observation_end, sort_orde
   // Logger.log(response);
   var json = response.getContentText();
   var data = JSON.parse(json);
-  Logger.log(seriesname + ' ' + url + " data fetched");  
+  Logger.log(FREDcode + ' ' + url + " data fetched");  
   return data;  
 }
