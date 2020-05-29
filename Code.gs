@@ -70,6 +70,8 @@ function myFunction() {
   var series = {} ;
   var mymap = {} ;
   
+  // If any series is marked Descending then the full output will be descending, last to first.
+  var descending_flag = 0 ;
 
   // Cycle through the series (one per row) to retrieve 
   for (var i = 0; i < numberOfSeries; i++) {
@@ -83,6 +85,9 @@ function myFunction() {
     else 
       var observation_end = Utilities.formatDate(values[i][5],"GMT", "yyyy-MM-dd"); 
     var sort_order_text = values[i][6] ;
+    if (sort_order_text == 'Descending') {
+      descending_flag = 1
+    }
     var units_text = values[i][7] ;
     var frequency_text = values[i][8] ;
     var aggregation_method_text = values[i][9];
@@ -103,7 +108,9 @@ function myFunction() {
  
   // Get union of (unique) dates; sort by date
   theDates = theDates.sort().filter(onlyUnique)
-   
+  if (descending_flag == 1) {
+    theDates.reverse()
+  }
   
   // write three header rows with metadata
   var array = [] 
