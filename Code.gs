@@ -8,12 +8,12 @@ Redistribution and use in source and binary forms, with or without modification,
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 ********************************/
 
-
 /********************************
-Forked from https://github.com/timsternation/fredApi/
+This script pulls data from the FRED API and series by date 
 
-This script is designed to pull data from the FRED API. 
-Documentation for the FRED API: https://fred.stlouisfed.org/docs/api/fred/
+Retrieves series metadata
+Reads list of desired series and parameters (start, end, order, etc.) from spreadsheet
+Joins series by date
 
 To use it, you'll need:
 
@@ -23,10 +23,7 @@ To use it, you'll need:
 3. Use Data -> Script Editor to open a Google Apps Script associated with the spreadsheet and paste this script into the script editor window, updating the FRED API key below with the key you registered in step 1
 4. Run the script with menu FRED -> "Get FRED Data"
 
-// Done
-Retrieve series metadata
-Read list of desired series and parameters (start, end, order, etc.) from spreadsheet
-Join series by date
+
 ********************************/
 
 function onOpen() {
@@ -60,6 +57,12 @@ function myFunction() {
   
 
   var theDates = [];
+  
+  var title = {} ;
+  var etc = {};
+  var series = {} ;
+  var mymap = {} ;
+  
 
   // Cycle through the series (one per row) to retrieve 
   for (var i = 1; i < values.length; i++) {
@@ -77,107 +80,68 @@ function myFunction() {
     var frequency_text = values[i][8] ;
     var aggregation_method_text = values[i][9];
      
-    var data = getnwrite(ser = seriesname, observation_start, observation_end, sort_order_text, units_text, frequency_text, aggregation_method_text) ;
-    var meta = fredQueryMeta(series = ser) ;
-
-    if (i==1) {
-      title1 = meta.seriess[0]["title"] ;
-      etc1 = units_text + ' ' + meta.seriess[0]["units"]  + ' ' + meta.seriess[0]["seasonal_adjustment_short"] ;
-      series1 = ser ;
-      mymap1 = arrayToMap(data) ;
-      var dates = []
-      for (var d in mymap1) {
-        dates.push(d)
-      }
-      theDates = theDates.concat(dates);
+    var data = getnwrite(seriesname, observation_start, observation_end, sort_order_text, units_text, frequency_text, aggregation_method_text) ;
+    var meta = fredQueryMeta(seriesname) ;
+    
+    title[seriesname] = meta.seriess[0]["title"] ;
+    etc[seriesname] = units_text + ' ' + meta.seriess[0]["units"]  + ' ' + meta.seriess[0]["seasonal_adjustment_short"] ;
+    series[seriesname] = seriesname ;
+    mymap[seriesname] = arrayToMap(data) ;
+    var dates = [] ;
+    for (var d in mymap[seriesname]) {
+      dates.push(d)
     }
-    if (i==2) {
-      title2 = meta.seriess[0]["title"] ;
-      etc2 = units_text + ' ' + meta.seriess[0]["units"]  + ' ' + meta.seriess[0]["seasonal_adjustment_short"] ;
-      series2 = ser ;
-      mymap2 = arrayToMap(data);
-      var dates = []
-      for (var d in mymap2) {
-        dates.push(d)
-      }
-      theDates = theDates.concat(dates);
-    }
-    if (i==3) {
-      title3 = meta.seriess[0]["title"] ;
-      etc3 = units_text + ' ' + meta.seriess[0]["units"]  + ' ' + meta.seriess[0]["seasonal_adjustment_short"] ;
-      series3 = ser ;
-      mymap3 = arrayToMap(data);
-      var dates = []
-      for (var d in mymap3) {
-        dates.push(d)
-      }
-      theDates = theDates.concat(dates);
-    }
-    if (i==4) {
-      title4 = meta.seriess[0]["title"] ;
-      etc4 = units_text + ' ' + meta.seriess[0]["units"]  + ' ' + meta.seriess[0]["seasonal_adjustment_short"] ;
-      series4 = ser ;
-      mymap4 = arrayToMap(data);
-      var dates = []
-      for (var d in mymap4) {
-        dates.push(d)
-      }
-      theDates = theDates.concat(dates);
-    }
-    if (i==5) {
-      title5 = meta.seriess[0]["title"] ;
-      etc5 = units_text + ' ' + meta.seriess[0]["units"]  + ' ' + meta.seriess[0]["seasonal_adjustment_short"] ;
-      series5 = ser ;
-      mymap5 = arrayToMap(data);
-      var dates = []
-      for (var d in mymap5) {
-        dates.push(d)
-      }
-      theDates = theDates.concat(dates);
-    }
-    if (i==6) {
-      title6 = meta.seriess[0]["title"] ;
-      etc6 = units_text + ' ' + meta.seriess[0]["units"]  + ' ' + meta.seriess[0]["seasonal_adjustment_short"] ;
-      series6 = ser ;
-      mymap6 = arrayToMap(data);
-      var dates = []
-      for (var d in mymap6) {
-        dates.push(d)
-      }
-      theDates = theDates.concat(dates);
-    }
+    theDates = theDates.concat(dates);
   }
  
+  // Get union of (unique) dates; sort by date
   theDates = theDates.sort().filter(onlyUnique)
   
-  // write three header rows
+      
+  // write three header rows with metadata
   var array = [] 
-  array[0] = (['Title', title1, title2, title3, title4, title5, title6 ]) ;
-  array[1] = (['Units/Seasonality', etc1, etc2, etc3, etc4, etc5, etc6 ]) ; 
-  array[2] = (["Date", series1, series2, series3, series4, series5, series6 ]);
-  // Creates row array entries of 6 data series from the associative array
+  array[0] = (['Title'].concat(getAllSeriesInfo(title))) ;
+  array[1] = (['Units/Seasonality'].concat(getAllSeriesInfo(etc))) ; 
+  array[2] = (['Date'].concat(getAllSeriesInfo(series))) ;
+
+  // Creates row array entries of data series from the associative array
   var i = 3 ; // Need counter separate from the key to the associative array
   for (var d in theDates) {
-    array[i] = ([ theDates[d], mymap1[theDates[d]], mymap2[theDates[d]], mymap3[theDates[d]], mymap4[theDates[d]], mymap5[theDates[d]], mymap6[theDates[d]] ]) ;
-    Logger.log(array[d+3]);
+    array[i] = ([theDates[d]].concat(getAllSeriesData(mymap,theDates,d))) ;
     i++ ;
   }
   //write array to sheet
   var num = array.length.toString();
-  var r = yourNewSheet.getRange('a1:g'+num);
+  var r = yourNewSheet.getRange(1,1,num,values.length);
   yourNewSheet.setActiveRange(r) ;
   r.setValues(array);  
 }
 
+// 
+function getAllSeriesInfo(metadata) {
+  meta = [] ;
+  for (m in metadata) {
+    meta = meta.concat(metadata[m])
+  } 
+  return meta ;
+}
 
-// filter Function to return only unique values in array (to get the right dates)
+function getAllSeriesData(map,theDates,d) {
+  values = [] ;
+  for (m in map) {
+    values = values.concat(map[m][theDates[d]])
+  } 
+  return values ;
+}
+
+
+// filter Function to return only unique values in array (to get the union of dates)
 function onlyUnique(value, index, self) { 
     return self.indexOf(value) === index;
 }
 
-
 // getnrwrite() calls the FRED query functions and returns the data
-function getnwrite(ser, observation_start, observation_end, sort_order_text, units_text, frequency_text, aggregation_method_text) { 
+function getnwrite(seriesname, observation_start, observation_end, sort_order_text, units_text, frequency_text, aggregation_method_text) { 
     switch(sort_order_text) {
       case 'Descending':
         var sort_order = 'desc' ;
@@ -258,7 +222,7 @@ function getnwrite(ser, observation_start, observation_end, sort_order_text, uni
         var aggregation_method = '';
     }
   
-  var data = fredQueryData(series = ser, observation_start, observation_end, sort_order, units, frequency, aggregation_method) ;
+  var data = fredQueryData(seriesname, observation_start, observation_end, sort_order, units, frequency, aggregation_method) ;
   return data ;
 }
 
@@ -278,25 +242,25 @@ function arrayToMap(data) {
 
 
 // Construct, send query to FRED API for metadata on series
-function fredQueryMeta(series)  {
+function fredQueryMeta(seriesname)  {
  var url =  'https://api.stlouisfed.org/fred/series?'
- + 'series_id=' + series
+ + 'series_id=' + seriesname
  + '&api_key=' + PropertiesService.getScriptProperties().getProperty('mykey')
  + '&file_type=json'
   ;
   var response = UrlFetchApp.fetch(url, {'muteHttpExceptions': true});
   var json = response.getContentText();
   var meta = JSON.parse(json);
-  Logger.log(series + ' ' + url + " metadata fetched");  
+  Logger.log(seriesname + ' ' + url + " metadata fetched");  
   return meta ;  
 }
 
 
 // Construct, send query to FRED API for a data series
-function fredQueryData(series, observation_start, observation_end, sort_order, units, frequency, aggregation_method) {
+function fredQueryData(seriesname, observation_start, observation_end, sort_order, units, frequency, aggregation_method) {
   
   var url = 'https://api.stlouisfed.org/fred/series/observations?'
-  + 'series_id=' + series
+  + 'series_id=' + seriesname
   + '&observation_start=' + observation_start 
   + '&observation_end=' + observation_end 
   + '&sort_order=' + sort_order 
@@ -310,6 +274,6 @@ function fredQueryData(series, observation_start, observation_end, sort_order, u
   // Logger.log(response);
   var json = response.getContentText();
   var data = JSON.parse(json);
-  Logger.log(series + ' ' + url + " data fetched");  
+  Logger.log(seriesname + ' ' + url + " data fetched");  
   return data;  
 }
