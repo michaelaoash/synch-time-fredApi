@@ -32,7 +32,7 @@ function onOpen() {
     {name: 'Get FRED Data', functionName: 'myFunction'}];
   spreadsheet.addMenu('FRED', menuItems);
 }
-    
+
 // The following defines a "global" variable for the FRED API Key.
 PropertiesService.getScriptProperties().setProperty('mykey', '2c43987fff98daa62e436c00e39f99ff');
 
@@ -72,7 +72,7 @@ function myFunction() {
   
 
   // Cycle through the series (one per row) to retrieve 
-  for (var i = 1; i < numberOfSeries; i++) {
+  for (var i = 0; i < numberOfSeries; i++) {
     var FREDcode = values[i][0] ;
     if (values[i][4] == '') 
       var observation_start = ''
@@ -118,7 +118,7 @@ function myFunction() {
     i++ ;
   }
   //write array to sheet
-  var r = yourNewSheet.getRange(1,1,array.length,values.length);
+  var r = yourNewSheet.getRange(1,1,array.length,values.length+1);
   yourNewSheet.setActiveRange(r) ;
   r.setValues(array);  
 }
