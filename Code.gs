@@ -44,8 +44,15 @@ function myFunction() {
   var seriesSheet = ss.getSheetByName("Series") ;
 
   // Get the series and parameters from the spreadsheet.
-  var range = seriesSheet.getDataRange();
+  var seriesList = seriesSheet.getRange("A2:A").getValues();
+  var numberOfSeries = seriesList.filter(String).length;
+  
+  Logger.log(numberOfSeries) ;
+
+  var range = seriesSheet.getRange(2,1,numberOfSeries,10);
   var values = range.getValues();
+  Logger.log(values)
+  Logger.log(values.length)
 
   
   var yourNewSheet = ss.getSheetByName('Output');
@@ -65,7 +72,7 @@ function myFunction() {
   
 
   // Cycle through the series (one per row) to retrieve 
-  for (var i = 1; i < values.length; i++) {
+  for (var i = 1; i < numberOfSeries; i++) {
     var FREDcode = values[i][0] ;
     if (values[i][4] == '') 
       var observation_start = ''
@@ -83,7 +90,7 @@ function myFunction() {
     var data = getnwrite(FREDcode, observation_start, observation_end, sort_order_text, units_text, frequency_text, aggregation_method_text) ;
     var meta = fredQueryMeta(FREDcode) ;
     
-    title[FREDcode] = meta.seriess[0]["title"] ;
+    title[FREDcode] = meta.seriess[0]["title"] ;    
     etc[FREDcode] = units_text + ' ' + meta.seriess[0]["units"]  + ' ' + meta.seriess[0]["seasonal_adjustment_short"] ;
     series[FREDcode] = FREDcode ;
     mymap[FREDcode] = arrayToMap(data) ;
@@ -96,8 +103,8 @@ function myFunction() {
  
   // Get union of (unique) dates; sort by date
   theDates = theDates.sort().filter(onlyUnique)
+   
   
-      
   // write three header rows with metadata
   var array = [] 
   array[0] = (['Title'].concat(getAllSeriesInfo(title))) ;
@@ -111,8 +118,7 @@ function myFunction() {
     i++ ;
   }
   //write array to sheet
-  var num = array.length.toString();
-  var r = yourNewSheet.getRange(1,1,num,values.length);
+  var r = yourNewSheet.getRange(1,1,array.length,values.length);
   yourNewSheet.setActiveRange(r) ;
   r.setValues(array);  
 }
