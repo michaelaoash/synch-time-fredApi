@@ -14,8 +14,8 @@
 - You need:
     1. A free FRED API key available from [https://research.stlouisfed.org/docs/api/api_key.html](https://research.stlouisfed.org/docs/api/api_key.html)
     2. A Google Sheet with a sheet called "Series" listing the FRED code for the series and parameters for the query.
-        - Here is a  [test Google Sheet with examples, search utility, and metadata retrieval](https://docs.google.com/spreadsheets/d/1f4Y-MgRf5d6qNOaOPmtz8HsEa3sW5E1hPP1kzpDfNMo/edit#gid=0)
-	- Copy this sheet to your Google Drive
+        - Here is a  [test Google Sheet with examples, search utility, and metadata retrieval](https://docs.google.com/spreadsheets/d/1f4Y-MgRf5d6qNOaOPmtz8HsEa3sW5E1hPP1kzpDfNMo/edit#gid=0) 
+        - Copy this sheet to your Google Drive
 - One-time set-up:
     1. On the Google Sheet,
         - On the Notes/Technical sheet, update the FRED API key with your FRED API key 
