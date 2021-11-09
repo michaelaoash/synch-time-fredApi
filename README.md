@@ -19,7 +19,7 @@
 - One-time set-up:
     1. On the Google Sheet,
         - On the Notes/Technical sheet, update the FRED API key with your FRED API key 
-        - Use Data -> Script Editor to open a Google Apps Script associated with the Google Sheet
+        - Use Tools -> Script Editor to open a Google Apps Script associated with the Google Sheet
     2. Paste the code.gs text of the synch-time-fredApi script into the script editor window
     3. In the code.gs script, update the FRED API key with your FRED API key
     4. There may be a one-time authorization to permit the script to run
