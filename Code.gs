@@ -76,6 +76,7 @@ function myFunction() {
   // Cycle through the series (one per row) to retrieve 
   for (var i = 0; i < numberOfSeries; i++) {
     var FREDcode = values[i][0] ;
+    var FREDspec = values[i][0] + values[i][4] + values[i][5] + values[i][6] + values[i][7] + values[i][8] + values[i][9] ;
     if (values[i][4] == '') 
       var observation_start = ''
     else 
@@ -95,12 +96,12 @@ function myFunction() {
     var data = getnwrite(FREDcode, observation_start, observation_end, sort_order_text, units_text, frequency_text, aggregation_method_text) ;
     var meta = fredQueryMeta(FREDcode) ;
     
-    title[FREDcode] = meta.seriess[0]["title"] ;    
-    etc[FREDcode] = units_text + ' ' + meta.seriess[0]["units"]  + ' ' + meta.seriess[0]["seasonal_adjustment_short"] ;
-    series[FREDcode] = FREDcode ;
-    mymap[FREDcode] = arrayToMap(data) ;
+    title[FREDspec] = meta.seriess[0]["title"] ;    
+    etc[FREDspec] = units_text + ' ' + meta.seriess[0]["units"]  + ' ' + meta.seriess[0]["seasonal_adjustment_short"] ;
+    series[FREDspec] = FREDcode ;
+    mymap[FREDspec] = arrayToMap(data) ;
     var dates = [] ;
-    for (var d in mymap[FREDcode]) {
+    for (var d in mymap[FREDspec]) {
       dates.push(d)
     }
     theDates = theDates.concat(dates);
