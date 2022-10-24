@@ -34,7 +34,7 @@ function onOpen() {
 }
 
 // The following defines a "global" variable for the FRED API Key.
-PropertiesService.getScriptProperties().setProperty('mykey', '2c43987fff98daa62e436c00e39f99ff');
+PropertiesService.getScriptProperties().setProperty('mykey', 'put-your-FRED-API-key-here');
 
 // myFunction() is the main function. It loops over the sheet names to call the getnwrite 
 // function for each sheet (i.e. series)
@@ -218,6 +218,33 @@ function getnwrite(FREDcode, observation_start, observation_end, sort_order_text
         break ; 
       case 'Annual' :
         var frequency = 'a' ;
+        break ;
+      case 'Weekly, Ending Friday' :
+        var frequency = 'wef' ;
+        break;
+      case 'Weekly, Ending Thursday' :
+        var frequency = 'weth' ;
+        break;
+      case 'Weekly, Ending Wednesday' :
+        var frequency = 'wew' ;
+        break;
+      case 'Weekly, Ending Tuesday' :
+        var frequency = 'wetu' ;
+        break;
+      case 'Weekly, Ending Monday' :
+        var frequency = 'wem' ;
+        break ;
+      case 'Weekly, Ending Sunday' :
+        var frequency = 'wesu' ;
+        break ; 
+      case 'Weekly, Ending Saturday' :
+        var frequency = 'wesa' ;
+        break ;
+      case 'Biweekly, Ending Wednesday' :
+        var frequency = 'bwew' ;
+        break ; 
+      case 'Biweekly, Ending Monday' :
+        var frequency = 'bwem' ;
         break ;
       default :
         var frequency = '' ;
