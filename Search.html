@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <base target="_top">
+    <style>
+      body {
+        font-family: sans-serif;
+        font-size: 14px;
+      }
+      fieldset {
+        background-color: #eeeeee;
+      }
+      legend {
+        background-color: gray;
+        color: white;
+        padding: 5px 10px;
+      }
+      label {
+        display: inline-block;
+        width: 90px;
+        text-align: right;
+      }
+      input {
+        margin: 5px;
+      }
+      div.note {
+        font-size: 11px;
+        text-align: right;
+      }
+      div.submit {
+        text-align: center;
+      }
+    </style>
+    <script>
+      // Prevent forms from submitting natively (developers.google.com)
+      function preventFormSubmit() {
+        var form = document.getElementById('search_form');
+        form.addEventListener('submit', function(event) {
+          event.preventDefault();
+        });
+      }
+      window.addEventListener('load', preventFormSubmit);
+
+      function handleSearch(formObject) {
+        showMessage('Loading...');
+        google.script.run.withFailureHandler(onFailure).withSuccessHandler(onSuccess).SearchFredSeries(
+          formObject.search_text.value, formObject.limit.value);
+      }
+
+      function showMessage(msg) {
+        var div = document.getElementById('output');
+        div.innerHTML = msg;        
+      }
+      function onFailure(error) {
+        showMessage(error.message);
+      }
+      function onSuccess(obj) {
+        showMessage('Done.');
+      }
+    </script>
+  </head>
+  <body>
+    <form id="search_form" onsubmit="handleSearch(this)">
+      <fieldset>
+        <label for="search_text">Search terms:</label> 
+        <input name="search_text" type="text" /><br>
+        <label for="limit">Limit:</label>
+        <input name="limit" type="text" /><br>
+        <div class="note">Results limited to 1000 series (default)</div>
+        <div class="submit"><input type="submit" value="Search" /></div>
+      </fieldset>
+    </form>
+    <div id="output"></div>
+  </body>
+</html>
