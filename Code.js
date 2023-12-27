@@ -39,7 +39,10 @@ function onOpen() {
 function getApiKey() {
   var apiKeyCell = SpreadsheetApp.getActiveSpreadsheet().getRangeByName('APIKey');
   if (apiKeyCell === null) {
-    throw "Error: Please set APIKey on the first sheet";
+    throw 'Error: Please set APIKey on the first sheet using a Named Range called, "APIKey"';
+  }
+  if (apiKeyCell.getValue() == '') {
+    throw 'Error: Please set APIKey on the first sheet';
   }
   return apiKeyCell.getValue();
 }
@@ -56,7 +59,7 @@ function GetFredData() {
 }
 
 // loadSeriesToSheet is the main work routine that fetches data from FRED, based
-// on 'specs' (array of FREDSeriesSpec) and writes the data to the sheet named sheetname.
+// on 'specs' (array of SeriesSpec) and writes the data to the sheet named sheetname.
 // The sheet is created if it doesn't exist.
 function loadSeriesToSheet(apiKey, ss, sheetname, specs) {
   var allDates = {};
@@ -85,7 +88,7 @@ function loadSeriesToSheet(apiKey, ss, sheetname, specs) {
     theDates.reverse()
   }
   // Arrange into 2-d array of arrays that can be inserted into sheet.
-  var array = arrangeSeriesData(allSeriesData, theDates);
+  var array = prepareSeriesData(allSeriesData, theDates);
 
   // write array to sheet
   var newSheet = ss.getSheetByName(sheetname);
@@ -101,32 +104,32 @@ function loadSeriesToSheet(apiKey, ss, sheetname, specs) {
 }
 
 // loadSeries loads the series metadata and data, based on spec, and returns an
-// object. The spec is an instance FREDSeriesSpec. Returns an instance of
-// FREDSeriesData.
+// object. The spec is an instance SeriesSpec. Returns an instance of
+// SeriesData.
 function loadOneSeries(apiKey, spec) {
   if (spec.series =='') {
-    return new FREDSeriesData(spec, spec.units_text, {});
+    return new SeriesData(spec, spec.units_text, {});
   }
   // Query FRED for data and metadata for the series.   
   var data = fredQueryData(apiKey, spec);
   var meta = fredQueryMeta(apiKey, spec.series) ;
 
   // Return loaded data as an Object that contains metadata and the data
-  return new FREDSeriesData(
+  return new SeriesData(
     spec,
     [spec.units_text, meta.seriess[0]["units"], meta.seriess[0]["seasonal_adjustment_short"]].join(' '),
     arrayToDateValueMap(data)  // map of date to value
   );
 }
 
-// formatData formats loaded data as array of arrays that can be inserted
-// directly into a sheet. allSeriesData is an array of FREDSeriesData.
-function arrangeSeriesData(allSeriesData, dates) {
+// prepareSeriesData formats loaded data as array of arrays that can be inserted
+// directly into a sheet. allSeriesData is an array of SeriesData.
+function prepareSeriesData(allSeriesData, dates) {
   // write three header rows with metadata
   var array = [] 
-  array[0] = (['Series'].concat(getAllSeriesInfo(allSeriesData, 'series'))) ;
-  array[1] = (['Units/Seasonality'].concat(getAllSeriesInfo(allSeriesData, 'etc'))) ; 
-  array[2] = (['Date'].concat(getAllSeriesInfo(allSeriesData, 'title'))) ;
+  array[0] = (['Series'].concat(extractSeriesMetaForField(allSeriesData, 'series'))) ;
+  array[1] = (['Units/Seasonality'].concat(extractSeriesMetaForField(allSeriesData, 'etc'))) ; 
+  array[2] = (['Date'].concat(extractSeriesMetaForField(allSeriesData, 'title'))) ;
 
   // Creates row array entries of data series from the associative array
   // Use for...of syntax, instead of for...in, to get values directly
@@ -134,7 +137,7 @@ function arrangeSeriesData(allSeriesData, dates) {
     // append each date's data to the array without having to main 'i' index.
     array.push(
       // Each row is a date, followed by values.
-       [d].concat(getAllSeriesData(allSeriesData, d))
+       [d].concat(extractSeriesDataForDate(allSeriesData, d))
     );
   };
   return array;
@@ -152,8 +155,8 @@ function formatTable(datarange, numHeaderRows) {
 }
 
 // Returns array of metadata for the specified spec field, where allSeriesData
-// is an array of FREDSeriesData that contains the spec of the series.
-function getAllSeriesInfo(allSeriesData, field) {
+// is an array of SeriesData that contains the spec of the series.
+function extractSeriesMetaForField(allSeriesData, field) {
   meta = [];
   for (d of allSeriesData) {
     meta.push(d[field]);  // appends "field" value to meta array.
@@ -162,9 +165,9 @@ function getAllSeriesInfo(allSeriesData, field) {
 }
 
 // Returns array of data values for the specified date, dt, where allSeriesData
-// is an array of FREDSeriesData that contains the data, which is
+// is an array of SeriesData that contains the data, which is
 // an associate array: {date: value}
-function getAllSeriesData(allSeriesData, dt) {
+function extractSeriesDataForDate(allSeriesData, dt) {
   // ASSUMPTION: dataMap maintains insertion order.
   values = [];
   for (d of allSeriesData) {
@@ -272,7 +275,7 @@ function fredQueryMeta(apiKey, FREDcode)  {
 }
 
 // Construct, send query to FRED API for a data series, where spec
-// is instance of FREDSeriesSpec.
+// is instance of SeriesSpec.
 function fredQueryData(apiKey, spec) {
   var params = {
     'series_id': spec.series,
@@ -314,6 +317,7 @@ function showSearchSidebar() {
 }
 
 // Called by the sidebar to perform the search.
+// Returns number of entries found.
 function SearchFredSeries(search_text, limit) {
   const sheetname = 'Search';
   var apiKey = getApiKey();
@@ -323,7 +327,7 @@ function SearchFredSeries(search_text, limit) {
   }
   sheet.activate();
   var results = fredSearchSeries(apiKey, search_text, limit);
-  var array = arrangeSearchResults(results);
+  var array = prepareSearchResults(results);
   if (array.length == 0) {
     throw `Error: No data found for search text "${search_text}"`;
   }
@@ -338,9 +342,10 @@ function SearchFredSeries(search_text, limit) {
   r = r.offset(0, 0, array.length, array[0].length);
   r.setValues(array);
   r.setWrap(true);
+  return array.length;
 }
 
-function arrangeSearchResults(results) {
+function prepareSearchResults(results) {
   var all = []
   // extract needed fields from all series in result.
   for (r of results['seriess']) {
@@ -364,7 +369,7 @@ function arrangeSearchResults(results) {
 // Writes the mapping of pretty names-to-codes into the "Constants" sheet.
 // This makes sure that the drop-down selections will actually match
 // the strings used for matching.
-function createDropdownConstants() {
+function CreateDropdownConstants() {
   const sheetName = 'Constants';
   var ss = SpreadsheetApp.getActiveSpreadsheet();
   var sheet = ss.getSheetByName(sheetName);

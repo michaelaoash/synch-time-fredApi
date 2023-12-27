@@ -1,8 +1,15 @@
-// Classes
+/********************************
+BSD License
+Copyright 2020 Michael Ash & Tim Hulley & Vincent Chen
+Redistribution and use in source and binary forms, with or without modification, are permitted provided that the following conditions are met:
+1. Redistributions of source code must retain the above copyright notice, this list of conditions and the following disclaimer.
+2. Redistributions in binary form must reproduce the above copyright notice, this list of conditions and the following disclaimer in the documentation and/or other materials provided with the distribution.
+3. Neither the name of the copyright holder nor the names of its contributors may be used to endorse or promote products derived from this software without specific prior written permission.
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+********************************/
 
-// FREDSeriesSpec holds the specifications for a data series to retrieve from FRED.
-//
-// In general a data series might be useful to include for more than one indicator.
+// SeriesSpec holds the specifications for a data series to retrieve from
+// data APIs like FRED.
 //
 // series: unique code that identifies a series
 // title: friendly title for the series
@@ -13,7 +20,7 @@
 // frequency_text: the "pretty" value for frequency
 // aggregation_method_text: the "pretty" value for frequency-aggregation method
 // description: more detailed description for the series
-class FREDSeriesSpec {
+class SeriesSpec {
   constructor (
     series, title, observation_start, observation_end, sort_order_text,
     units_text, frequency_text, aggregation_method_text,
@@ -32,7 +39,6 @@ class FREDSeriesSpec {
     return `${this.series}: ${this.title} / ${this.units_text} /` +
         ` ${this.frequency_text} / ${this.aggregation_method_text}`;
   }
-
 }
 
 // Holds both the specification (spec) used to load the data and the
@@ -43,7 +49,7 @@ class FREDSeriesSpec {
 //   etc: The units string that includes seasonal adjustments (need better name)
 //   is_descending: true or false
 //   data: Associative array mapping date to value
-class FREDSeriesData {
+class SeriesData {
   // spec is an instance of FREDSeriesSpec.
   // etc is the string to display for units, including seasonal adjustments
   // data is the loaded data, mapping date to value
@@ -123,7 +129,7 @@ class SimpleSeriesSpecLoader extends SeriesSpecLoader {
 
   DecodeRow(row) {
     var idx = this.ColIdx;
-    return new FREDSeriesSpec(
+    return new SeriesSpec(
         row[idx.Code],
         row[idx.Title],
         (row[idx.StartDate] == '' ? ''
